@@ -9,9 +9,9 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 const NAV = [
   { href: "/", label: "Home" },
-  { href: "/reports", label: "Reports" },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/report", label: "Report" },
   { href: "/accounts", label: "Accounts" },
-  { href: "/transactions", label: "Transactions" },
   { href: "/balances", label: "Balances" },
 ];
 
@@ -24,13 +24,13 @@ export default function NavBar() {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-surface/80 backdrop-blur">
+    <header className="no-print sticky top-0 z-30 border-b border-border bg-surface/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-3">
         <Link href="/" className="mr-2 flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-fg font-bold">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-linear-to-br from-primary to-accent text-primary-fg font-bold shadow-(--shadow)">
             ₹
           </span>
-          <span className="hidden text-lg font-semibold text-fg sm:block">FinTrack</span>
+          <span className="hidden text-lg font-semibold sm:block text-gradient">FinTrack</span>
         </Link>
 
         <nav className="flex flex-1 items-center gap-1 overflow-x-auto">

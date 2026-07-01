@@ -31,11 +31,11 @@ export default function Login() {
 
       <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-8 shadow-xl">
         <div className="mb-6 flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-fg font-bold text-lg">
+          <div className="grid h-11 w-11 place-items-center rounded-xl bg-linear-to-br from-primary to-accent text-primary-fg font-bold text-lg shadow-(--shadow)">
             ₹
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-fg">FinTrack</h1>
+            <h1 className="text-xl font-semibold text-gradient">FinTrack</h1>
             <p className="text-sm text-muted">Track your day-to-day balance</p>
           </div>
         </div>

@@ -47,7 +47,7 @@ function StatCard({
     primary: "text-primary",
   }[tone];
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4 shadow-[var(--shadow)]">
+    <div className="rounded-2xl border border-border bg-surface p-4 shadow-(--shadow)">
       <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
       <p className={`mt-1 font-mono text-2xl font-semibold ${toneClass}`}>{money(value)}</p>
       {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}
@@ -65,7 +65,7 @@ function ChartCard({
   empty?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-5 shadow-[var(--shadow)]">
+    <div className="rounded-2xl border border-border bg-surface p-5 shadow-(--shadow)">
       <h3 className="mb-4 font-semibold text-fg">{title}</h3>
       {empty ? (
         <div className="grid h-56 place-items-center text-sm text-muted">No data yet</div>
@@ -87,7 +87,7 @@ function TooltipBox({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs shadow-[var(--shadow)]">
+    <div className="rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs shadow-(--shadow)">
       {label && <p className="mb-1 font-medium text-fg">{label}</p>}
       {payload.map((p, i) => (
         <p key={i} className="flex items-center gap-2 text-muted">
@@ -99,7 +99,7 @@ function TooltipBox({
   );
 }
 
-export default function Reports() {
+export default function Dashboard() {
   const { totals, expenseSlices, assetSlices, monthly, trend, txnCount, loading, error } =
     useReportData();
   const [mounted, setMounted] = useState(false);
