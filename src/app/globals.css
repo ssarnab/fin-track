@@ -1,26 +1,81 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   Theme tokens. Dark is the default (on :root). Light overrides via .light on
+   <html>. Never hardcode white/black in components — use these tokens.
+--------------------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0b0e14;
+  --surface: #141922;
+  --surface-2: #1c222e;
+  --border: #262d3a;
+  --fg: #e6e9ef;
+  --muted: #94a0b4;
+  --primary: #6d5efc;
+  --primary-fg: #ffffff;
+  --primary-hover: #5b4de0;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --ring: #6d5efc66;
+}
+
+html.light {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #eef1f5;
+  --border: #dfe3ea;
+  --fg: #1a1f2b;
+  --muted: #5b6472;
+  --primary: #6d5efc;
+  --primary-fg: #ffffff;
+  --primary-hover: #5b4de0;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --ring: #6d5efc55;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-hover: var(--primary-hover);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
+}
+html.light {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Style native date/select controls to match the theme in dark mode */
+input,
+select,
+textarea {
+  color-scheme: inherit;
+}
+
+::selection {
+  background: var(--primary);
+  color: var(--primary-fg);
 }

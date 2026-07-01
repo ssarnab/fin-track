@@ -1,5 +1,5 @@
 {
-  "name": "fintrack-scaffold",
+  "name": "fintrack",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "next": "16.2.9",
+    "@supabase/supabase-js": "^2.110.0",
+    "firebase": "^12.15.0",
+    "next": "^15.5.19",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
@@ -19,7 +21,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.9",
+    "eslint-config-next": "^15.5.19",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
