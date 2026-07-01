@@ -28,7 +28,7 @@ export default function NavBar() {
       <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-3">
         <Link href="/" className="mr-2 flex items-center gap-2">
           <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-primary text-primary-fg font-semibold">
-            ₹
+            ৳
           </span>
           <span className="hidden text-lg font-semibold tracking-tight text-fg sm:block">FinTrack</span>
         </Link>

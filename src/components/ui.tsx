@@ -76,8 +76,9 @@ export function Button({ variant = "primary", className = "", ...rest }: BtnProp
 }
 
 export function money(n: number): string {
-  return new Intl.NumberFormat(undefined, {
+  const s = new Intl.NumberFormat(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(n);
+  }).format(Math.abs(n));
+  return `${n < 0 ? "-" : ""}৳${s}`;
 }
