@@ -118,11 +118,23 @@ left join (
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security — each user sees/writes only their own rows.
+--
+-- Policies allow BOTH `anon` and `authenticated` roles because Firebase ID
+-- tokens carry no `role` claim (so Supabase runs queries as `anon`). Ownership
+-- is still enforced by `uid = current_uid()`, where current_uid() is the
+-- VERIFIED Firebase token's `sub`. A request with no token has current_uid()
+-- = NULL and therefore matches no rows. See migration 002 for the rationale.
 -- ---------------------------------------------------------------------------
 alter table public.component    enable row level security;
 alter table public.ledger       enable row level security;
 alter table public.journal      enable row level security;
 alter table public.transactions enable row level security;
+
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete
+  on public.component, public.ledger, public.journal, public.transactions
+  to anon, authenticated;
+grant select on public.journal_balances to anon, authenticated;
 
 do $$
 declare t text;
@@ -134,14 +146,14 @@ begin
     execute format('drop policy if exists own_delete on public.%I', t);
 
     execute format($p$create policy own_select on public.%I
-      for select to authenticated using (uid = public.current_uid())$p$, t);
+      for select to anon, authenticated using (uid = public.current_uid())$p$, t);
     execute format($p$create policy own_insert on public.%I
-      for insert to authenticated with check (uid = public.current_uid())$p$, t);
+      for insert to anon, authenticated with check (uid = public.current_uid())$p$, t);
     execute format($p$create policy own_update on public.%I
-      for update to authenticated using (uid = public.current_uid())
+      for update to anon, authenticated using (uid = public.current_uid())
       with check (uid = public.current_uid())$p$, t);
     execute format($p$create policy own_delete on public.%I
-      for delete to authenticated using (uid = public.current_uid())$p$, t);
+      for delete to anon, authenticated using (uid = public.current_uid())$p$, t);
   end loop;
 end $$;
 
