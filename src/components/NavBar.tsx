@@ -27,10 +27,10 @@ export default function NavBar() {
     <header className="no-print sticky top-0 z-30 border-b border-border bg-surface/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-3">
         <Link href="/" className="mr-2 flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-linear-to-br from-primary to-accent text-primary-fg font-bold shadow-(--shadow)">
+          <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-primary text-primary-fg font-semibold">
             ₹
           </span>
-          <span className="hidden text-lg font-semibold sm:block text-gradient">FinTrack</span>
+          <span className="hidden text-lg font-semibold tracking-tight text-fg sm:block">FinTrack</span>
         </Link>
 
         <nav className="flex flex-1 items-center gap-1 overflow-x-auto">
@@ -38,10 +38,10 @@ export default function NavBar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
                 isActive(item.href)
-                  ? "bg-primary text-primary-fg"
-                  : "text-muted hover:bg-surface-2 hover:text-fg"
+                  ? "bg-surface-2 text-fg"
+                  : "text-muted hover:text-fg"
               }`}
             >
               {item.label}

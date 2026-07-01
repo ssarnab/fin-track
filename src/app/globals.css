@@ -1,63 +1,64 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   Theme tokens. Dark is the default (on :root). Light overrides via .light on
-   <html>. Never hardcode white/black in components — use these tokens.
+   Apple-inspired design tokens (SF Pro typography, monochrome-luxury palette,
+   generous white space, subtle depth). Dark is default; .light overrides.
+   Never hardcode white/black in components — use these tokens.
 --------------------------------------------------------------------------- */
 :root {
-  --bg: #0a0c12;
-  --bg-elev: #0e1118;
-  --surface: #141824;
-  --surface-2: #1b2130;
-  --border: #262d3d;
-  --border-strong: #333c50;
-  --fg: #eef1f7;
-  --muted: #8b94a7;
-  --primary: #7c6cff;
+  --bg: #000000;
+  --bg-elev: #0a0a0b;
+  --surface: #161618;
+  --surface-2: #1f1f22;
+  --border: #2a2a2d;
+  --border-strong: #3a3a3e;
+  --fg: #f5f5f7;
+  --muted: #86868b;
+  --primary: #0a84ff;
   --primary-fg: #ffffff;
-  --primary-hover: #6a58f5;
-  --accent: #22d3ee;
-  --success: #34d399;
-  --danger: #f87171;
-  --warning: #fbbf24;
-  --ring: #7c6cff55;
+  --primary-hover: #3a9bff;
+  --accent: #64d2ff;
+  --success: #30d158;
+  --danger: #ff453a;
+  --warning: #ff9f0a;
+  --ring: rgba(10, 132, 255, 0.4);
 
-  --chart-1: #7c6cff;
-  --chart-2: #22d3ee;
-  --chart-3: #34d399;
-  --chart-4: #fbbf24;
-  --chart-5: #f87171;
-  --chart-6: #f472b6;
+  --chart-1: #0a84ff;
+  --chart-2: #64d2ff;
+  --chart-3: #30d158;
+  --chart-4: #ff9f0a;
+  --chart-5: #ff453a;
+  --chart-6: #bf5af2;
 
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.28);
+  --shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.04), 0 10px 34px rgba(0, 0, 0, 0.55);
 }
 
 html.light {
-  --bg: #f4f6fb;
-  --bg-elev: #eef1f7;
+  --bg: #fbfbfd;
+  --bg-elev: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f2f4f9;
-  --border: #e2e6ef;
-  --border-strong: #d2d8e5;
-  --fg: #14181f;
-  --muted: #5b6472;
-  --primary: #6d5efc;
+  --surface-2: #f5f5f7;
+  --border: #d2d2d7;
+  --border-strong: #c7c7cc;
+  --fg: #1d1d1f;
+  --muted: #6e6e73;
+  --primary: #0071e3;
   --primary-fg: #ffffff;
-  --primary-hover: #5b4de0;
-  --accent: #0891b2;
-  --success: #16a34a;
-  --danger: #dc2626;
-  --warning: #d97706;
-  --ring: #6d5efc44;
+  --primary-hover: #0077ed;
+  --accent: #0071e3;
+  --success: #248a3d;
+  --danger: #d70015;
+  --warning: #b25000;
+  --ring: rgba(0, 113, 227, 0.3);
 
-  --chart-1: #6d5efc;
-  --chart-2: #0891b2;
-  --chart-3: #16a34a;
-  --chart-4: #d97706;
-  --chart-5: #dc2626;
-  --chart-6: #db2777;
+  --chart-1: #0071e3;
+  --chart-2: #34aadc;
+  --chart-3: #248a3d;
+  --chart-4: #b25000;
+  --chart-5: #d70015;
+  --chart-6: #8944ab;
 
-  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 24px rgba(16, 24, 40, 0.08);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 12px 32px rgba(0, 0, 0, 0.07);
 }
 
 @theme inline {
@@ -83,8 +84,11 @@ html.light {
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
   --color-chart-6: var(--chart-6);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* SF Pro on Apple hardware, Inter (loaded) elsewhere, then system fallbacks */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    var(--font-inter), "Segoe UI", Roboto, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
 html {
@@ -95,14 +99,19 @@ html.light {
 }
 
 body {
-  background:
-    radial-gradient(1200px 600px at 100% -10%, color-mix(in oklab, var(--primary) 12%, transparent), transparent 60%),
-    radial-gradient(900px 500px at -10% 0%, color-mix(in oklab, var(--accent) 8%, transparent), transparent 55%),
-    var(--bg);
-  background-attachment: fixed;
+  background: var(--bg);
   color: var(--fg);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
+}
+
+/* Apple-style tightened tracking on headings */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.022em;
 }
 
 input,
@@ -116,22 +125,13 @@ textarea {
   color: var(--primary-fg);
 }
 
-/* Thin, themed scrollbars */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
 }
 
-/* Gradient brand/heading text */
-.text-gradient {
-  background: linear-gradient(90deg, var(--primary), var(--accent));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
 /* ---------------------------------------------------------------------------
-   Print — only the .print-area shows, forced to clean light colors.
+   Print — only .print-area shows, forced to clean light colors.
 --------------------------------------------------------------------------- */
 @media print {
   .no-print {
