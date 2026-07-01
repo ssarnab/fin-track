@@ -77,24 +77,30 @@ export default function Balances() {
             </span>
           </div>
           <div className="divide-y divide-border">
-            {g.rows.map((r) => (
-              <div
-                key={r.journal_id}
-                className="flex items-center justify-between px-5 py-2.5"
-              >
-                <div>
-                  <span className="text-fg">{r.journal_name}</span>
-                  <span className="ml-2 text-xs text-muted">{r.ledger_name}</span>
+            {g.rows.map((r) => {
+              const max = Math.max(...g.rows.map((x) => Math.abs(Number(x.balance))), 1);
+              const pct = Math.round((Math.abs(Number(r.balance)) / max) * 100);
+              const neg = Number(r.balance) < 0;
+              return (
+                <div key={r.journal_id} className="px-5 py-2.5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-fg">{r.journal_name}</span>
+                      <span className="ml-2 text-xs text-muted">{r.ledger_name}</span>
+                    </div>
+                    <span className={`font-mono text-sm ${neg ? "text-danger" : "text-fg"}`}>
+                      {money(Number(r.balance))}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-surface-2">
+                    <div
+                      className={`h-full rounded-full ${neg ? "bg-danger/60" : "bg-primary/60"}`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
                 </div>
-                <span
-                  className={`font-mono text-sm ${
-                    Number(r.balance) < 0 ? "text-danger" : "text-fg"
-                  }`}
-                >
-                  {money(Number(r.balance))}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
       ))}

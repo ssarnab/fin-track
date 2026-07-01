@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { useAccountTree, type ComponentNode, type LedgerNode } from "@/lib/useAccountTree";
 import {
   createComponent,
@@ -15,6 +15,10 @@ import {
 } from "@/lib/accounts";
 import { Button, Input, Select } from "@/components/ui";
 import { COMPONENT_KINDS, type ComponentKind } from "@/lib/types";
+
+// Reload the tree immediately after any mutation (realtime is best-effort).
+const ReloadContext = createContext<() => void>(() => {});
+const useReload = () => useContext(ReloadContext);
 
 function Chevron({ open }: { open: boolean }) {
   return (
@@ -41,6 +45,7 @@ function InlineAdd({
   placeholder: string;
   onAdd: (name: string) => Promise<unknown>;
 }) {
+  const reload = useReload();
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -51,6 +56,7 @@ function InlineAdd({
     try {
       await onAdd(v);
       setName("");
+      reload();
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -105,23 +111,20 @@ function RowActions({
   );
 }
 
-function promptRename(current: string, fn: (name: string) => Promise<void>) {
-  const next = window.prompt("Rename to:", current);
-  if (next && next.trim() && next.trim() !== current) {
-    fn(next.trim()).catch((e) => alert(e instanceof Error ? e.message : "Failed"));
-  }
-}
-
-function confirmDelete(what: string, fn: () => Promise<void>) {
-  if (window.confirm(`Delete "${what}"? This also removes everything under it.`)) {
-    fn().catch((e) => alert(e instanceof Error ? e.message : "Failed"));
+async function run(fn: () => Promise<unknown>, reload: () => void) {
+  try {
+    await fn();
+    reload();
+  } catch (e) {
+    alert(e instanceof Error ? e.message : "Failed");
   }
 }
 
 function LedgerBlock({ ledger }: { ledger: LedgerNode }) {
+  const reload = useReload();
   const [open, setOpen] = useState(true);
   return (
-    <div className="ml-5 border-l border-border pl-3">
+    <div className="ml-4 border-l border-border pl-3">
       <div className="group flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-surface-2">
         <button
           onClick={() => setOpen((v) => !v)}
@@ -132,13 +135,20 @@ function LedgerBlock({ ledger }: { ledger: LedgerNode }) {
           <span className="text-xs text-muted">({ledger.journals.length})</span>
         </button>
         <RowActions
-          onRename={() => promptRename(ledger.name, (n) => renameLedger(ledger.id, n))}
-          onDelete={() => confirmDelete(ledger.name, () => deleteLedger(ledger.id))}
+          onRename={() => {
+            const n = window.prompt("Rename group:", ledger.name);
+            if (n?.trim() && n.trim() !== ledger.name)
+              run(() => renameLedger(ledger.id, n.trim()), reload);
+          }}
+          onDelete={() => {
+            if (window.confirm(`Delete "${ledger.name}" and its accounts?`))
+              run(() => deleteLedger(ledger.id), reload);
+          }}
         />
       </div>
 
       {open && (
-        <div className="ml-5 space-y-1 border-l border-border pl-3 py-1">
+        <div className="ml-4 space-y-1 border-l border-border pl-3 py-1">
           {ledger.journals.map((j) => (
             <div
               key={j.id}
@@ -148,13 +158,20 @@ function LedgerBlock({ ledger }: { ledger: LedgerNode }) {
                 {j.name}
               </span>
               <RowActions
-                onRename={() => promptRename(j.name, (n) => renameJournal(j.id, n))}
-                onDelete={() => confirmDelete(j.name, () => deleteJournal(j.id))}
+                onRename={() => {
+                  const n = window.prompt("Rename account:", j.name);
+                  if (n?.trim() && n.trim() !== j.name)
+                    run(() => renameJournal(j.id, n.trim()), reload);
+                }}
+                onDelete={() => {
+                  if (window.confirm(`Delete "${j.name}"?`))
+                    run(() => deleteJournal(j.id), reload);
+                }}
               />
             </div>
           ))}
           <InlineAdd
-            placeholder="New account (journal)…"
+            placeholder="New account…"
             onAdd={(name) => createJournal(ledger.id, name)}
           />
         </div>
@@ -163,10 +180,19 @@ function LedgerBlock({ ledger }: { ledger: LedgerNode }) {
   );
 }
 
+const KIND_STYLES: Record<ComponentKind, string> = {
+  asset: "bg-success/15 text-success",
+  liability: "bg-danger/15 text-danger",
+  equity: "bg-primary/15 text-primary",
+  income: "bg-success/15 text-success",
+  expense: "bg-warning/15 text-warning",
+};
+
 function ComponentBlock({ component }: { component: ComponentNode }) {
+  const reload = useReload();
   const [open, setOpen] = useState(true);
   return (
-    <div className="rounded-2xl border border-border bg-surface p-3">
+    <div className="rounded-2xl border border-border bg-surface p-3 shadow-sm">
       <div className="group flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-surface-2">
         <button
           onClick={() => setOpen((v) => !v)}
@@ -174,13 +200,20 @@ function ComponentBlock({ component }: { component: ComponentNode }) {
         >
           <Chevron open={open} />
           {component.name}
-          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-normal capitalize text-muted">
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${KIND_STYLES[component.kind]}`}>
             {component.kind}
           </span>
         </button>
         <RowActions
-          onRename={() => promptRename(component.name, (n) => renameComponent(component.id, n))}
-          onDelete={() => confirmDelete(component.name, () => deleteComponent(component.id))}
+          onRename={() => {
+            const n = window.prompt("Rename category:", component.name);
+            if (n?.trim() && n.trim() !== component.name)
+              run(() => renameComponent(component.id, n.trim()), reload);
+          }}
+          onDelete={() => {
+            if (window.confirm(`Delete "${component.name}" and everything under it?`))
+              run(() => deleteComponent(component.id), reload);
+          }}
         />
       </div>
 
@@ -189,9 +222,9 @@ function ComponentBlock({ component }: { component: ComponentNode }) {
           {component.ledgers.map((l) => (
             <LedgerBlock key={l.id} ledger={l} />
           ))}
-          <div className="ml-5 border-l border-border pl-3 py-1">
+          <div className="ml-4 border-l border-border pl-3 py-1">
             <InlineAdd
-              placeholder="New group (ledger)…"
+              placeholder="New group…"
               onAdd={(name) => createLedger(component.id, name)}
             />
           </div>
@@ -202,11 +235,17 @@ function ComponentBlock({ component }: { component: ComponentNode }) {
 }
 
 export default function AccountsTree() {
-  const { tree, loading, error } = useAccountTree(true);
+  const { tree, loading, error, reload } = useAccountTree(true);
   const [newKind, setNewKind] = useState<ComponentKind>("asset");
 
   if (loading) {
-    return <p className="text-muted">Loading accounts…</p>;
+    return (
+      <div className="space-y-4">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-20 animate-pulse rounded-2xl border border-border bg-surface" />
+        ))}
+      </div>
+    );
   }
   if (error) {
     return (
@@ -217,33 +256,35 @@ export default function AccountsTree() {
   }
 
   return (
-    <div className="space-y-4">
-      {tree.map((c) => (
-        <ComponentBlock key={c.id} component={c} />
-      ))}
+    <ReloadContext.Provider value={reload}>
+      <div className="space-y-4">
+        {tree.map((c) => (
+          <ComponentBlock key={c.id} component={c} />
+        ))}
 
-      <div className="rounded-2xl border border-dashed border-border bg-surface/50 p-4">
-        <p className="mb-2 text-sm font-medium text-muted">Add a new category</p>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Select
-            value={newKind}
-            onChange={(e) => setNewKind(e.target.value as ComponentKind)}
-            className="sm:w-40"
-          >
-            {COMPONENT_KINDS.map((k) => (
-              <option key={k.value} value={k.value}>
-                {k.label}
-              </option>
-            ))}
-          </Select>
-          <div className="flex-1">
-            <InlineAdd
-              placeholder="New category (component)…"
-              onAdd={(name) => createComponent(name, newKind)}
-            />
+        <div className="rounded-2xl border border-dashed border-border bg-surface/50 p-4">
+          <p className="mb-2 text-sm font-medium text-muted">Add a new category</p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Select
+              value={newKind}
+              onChange={(e) => setNewKind(e.target.value as ComponentKind)}
+              className="sm:w-40"
+            >
+              {COMPONENT_KINDS.map((k) => (
+                <option key={k.value} value={k.value}>
+                  {k.label}
+                </option>
+              ))}
+            </Select>
+            <div className="flex-1">
+              <InlineAdd
+                placeholder="New category…"
+                onAdd={(name) => createComponent(name, newKind)}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </ReloadContext.Provider>
   );
 }

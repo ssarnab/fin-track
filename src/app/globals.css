@@ -5,51 +5,84 @@
    <html>. Never hardcode white/black in components — use these tokens.
 --------------------------------------------------------------------------- */
 :root {
-  --bg: #0b0e14;
-  --surface: #141922;
-  --surface-2: #1c222e;
-  --border: #262d3a;
-  --fg: #e6e9ef;
-  --muted: #94a0b4;
-  --primary: #6d5efc;
+  --bg: #0a0c12;
+  --bg-elev: #0e1118;
+  --surface: #141824;
+  --surface-2: #1b2130;
+  --border: #262d3d;
+  --border-strong: #333c50;
+  --fg: #eef1f7;
+  --muted: #8b94a7;
+  --primary: #7c6cff;
   --primary-fg: #ffffff;
-  --primary-hover: #5b4de0;
-  --success: #22c55e;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --ring: #6d5efc66;
+  --primary-hover: #6a58f5;
+  --accent: #22d3ee;
+  --success: #34d399;
+  --danger: #f87171;
+  --warning: #fbbf24;
+  --ring: #7c6cff55;
+
+  --chart-1: #7c6cff;
+  --chart-2: #22d3ee;
+  --chart-3: #34d399;
+  --chart-4: #fbbf24;
+  --chart-5: #f87171;
+  --chart-6: #f472b6;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 
 html.light {
-  --bg: #f6f7f9;
+  --bg: #f4f6fb;
+  --bg-elev: #eef1f7;
   --surface: #ffffff;
-  --surface-2: #eef1f5;
-  --border: #dfe3ea;
-  --fg: #1a1f2b;
+  --surface-2: #f2f4f9;
+  --border: #e2e6ef;
+  --border-strong: #d2d8e5;
+  --fg: #14181f;
   --muted: #5b6472;
   --primary: #6d5efc;
   --primary-fg: #ffffff;
   --primary-hover: #5b4de0;
+  --accent: #0891b2;
   --success: #16a34a;
   --danger: #dc2626;
   --warning: #d97706;
-  --ring: #6d5efc55;
+  --ring: #6d5efc44;
+
+  --chart-1: #6d5efc;
+  --chart-2: #0891b2;
+  --chart-3: #16a34a;
+  --chart-4: #d97706;
+  --chart-5: #dc2626;
+  --chart-6: #db2777;
+
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 24px rgba(16, 24, 40, 0.08);
 }
 
 @theme inline {
   --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-fg: var(--fg);
   --color-muted: var(--muted);
   --color-primary: var(--primary);
   --color-primary-fg: var(--primary-fg);
   --color-primary-hover: var(--primary-hover);
+  --color-accent: var(--accent);
   --color-success: var(--success);
   --color-danger: var(--danger);
   --color-warning: var(--warning);
   --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -62,13 +95,16 @@ html.light {
 }
 
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(1200px 600px at 100% -10%, color-mix(in oklab, var(--primary) 12%, transparent), transparent 60%),
+    radial-gradient(900px 500px at -10% 0%, color-mix(in oklab, var(--accent) 8%, transparent), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--fg);
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Style native date/select controls to match the theme in dark mode */
 input,
 select,
 textarea {
@@ -78,4 +114,10 @@ textarea {
 ::selection {
   background: var(--primary);
   color: var(--primary-fg);
+}
+
+/* Thin, themed scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
 }

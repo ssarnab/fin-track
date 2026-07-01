@@ -39,6 +39,7 @@ export default function Transactions() {
     if (!window.confirm("Delete this transaction?")) return;
     try {
       await deleteTransaction(id);
+      load();
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed");
     }
