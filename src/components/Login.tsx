@@ -5,9 +5,7 @@ import { useIdentity } from "@/lib/AuthProvider";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Field, Input, Button } from "@/components/ui";
 
-type Mode = "google" | "email" | "phone";
-
-const RECAPTCHA_CONTAINER_ID = "recaptcha-container";
+type Mode = "google" | "email";
 
 function friendlyError(e: unknown): string | null {
   const msg = e instanceof Error ? e.message : String(e);
@@ -17,14 +15,12 @@ function friendlyError(e: unknown): string | null {
   if (msg.includes("auth/invalid-credential") || msg.includes("auth/wrong-password")) return "Wrong email or password.";
   if (msg.includes("auth/user-not-found")) return "No account with that email — try creating one.";
   if (msg.includes("auth/weak-password")) return "Password should be at least 6 characters.";
-  if (msg.includes("auth/invalid-phone-number")) return "Enter the phone number in international format, e.g. +8801XXXXXXXXX.";
-  if (msg.includes("auth/invalid-verification-code")) return "That code doesn't match — check and try again.";
   if (msg.includes("auth/too-many-requests")) return "Too many attempts — please wait a bit and try again.";
   return msg;
 }
 
 export default function Login() {
-  const { signIn, signUpWithEmail, signInWithEmail, sendPhoneOtp, confirmPhoneOtp } = useIdentity();
+  const { signIn, signUpWithEmail, signInWithEmail } = useIdentity();
   const [mode, setMode] = useState<Mode>("google");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +29,6 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
-
-  // Phone
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
 
   async function handleGoogle() {
     setBusy(true);
@@ -58,33 +49,6 @@ export default function Login() {
     try {
       if (isSignUp) await signUpWithEmail(email, password);
       else await signInWithEmail(email, password);
-    } catch (err) {
-      setError(friendlyError(err));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleSendOtp(e: FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    try {
-      await sendPhoneOtp(phone, RECAPTCHA_CONTAINER_ID);
-      setOtpSent(true);
-    } catch (err) {
-      setError(friendlyError(err));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleVerifyOtp(e: FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    try {
-      await confirmPhoneOtp(otp);
     } catch (err) {
       setError(friendlyError(err));
     } finally {
@@ -115,7 +79,7 @@ export default function Login() {
         </div>
 
         <div className="mb-6 flex gap-1 rounded-xl border border-border bg-surface-2 p-1 text-sm">
-          {(["google", "email", "phone"] as const).map((m) => (
+          {(["google", "email"] as const).map((m) => (
             <button
               key={m}
               onClick={() => switchMode(m)}
@@ -180,59 +144,6 @@ export default function Login() {
               {isSignUp ? "Already have an account? Sign in" : "New here? Create an account"}
             </button>
           </form>
-        )}
-
-        {mode === "phone" && (
-          <>
-            {!otpSent ? (
-              <form onSubmit={handleSendOtp} className="space-y-4">
-                <Field label="Phone number">
-                  <Input
-                    type="tel"
-                    required
-                    autoComplete="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+8801XXXXXXXXX"
-                  />
-                </Field>
-                <Button type="submit" disabled={busy} className="w-full">
-                  {busy ? "Sending…" : "Send code"}
-                </Button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyOtp} className="space-y-4">
-                <p className="text-sm text-muted">
-                  Enter the code sent to <span className="text-fg">{phone}</span>.
-                </p>
-                <Field label="Verification code">
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    required
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    placeholder="123456"
-                  />
-                </Field>
-                <Button type="submit" disabled={busy} className="w-full">
-                  {busy ? "Verifying…" : "Verify"}
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOtpSent(false);
-                    setOtp("");
-                  }}
-                  className="w-full text-center text-sm text-muted hover:text-fg"
-                >
-                  Use a different number
-                </button>
-              </form>
-            )}
-            {/* Invisible reCAPTCHA mounts here; nothing to see unless Firebase needs a challenge. */}
-            <div id={RECAPTCHA_CONTAINER_ID} />
-          </>
         )}
 
         {error && (

@@ -9,8 +9,6 @@ type AuthContextValue = {
   signIn: () => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  sendPhoneOtp: (phoneNumber: string, containerId: string) => Promise<void>;
-  confirmPhoneOtp: (code: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
