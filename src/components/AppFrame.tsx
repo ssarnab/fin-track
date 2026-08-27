@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { usePathname } from "next/navigation";
 import { AuthProvider, useIdentity } from "@/lib/AuthProvider";
 import Login from "@/components/Login";
 import VerifyEmail from "@/components/VerifyEmail";
@@ -9,12 +8,6 @@ import NavBar from "@/components/NavBar";
 
 function Gate({ children }: { children: ReactNode }) {
   const { identity, loading } = useIdentity();
-  const pathname = usePathname();
-
-  // Password-reset / email-verify links land here with no session (or a
-  // stale one) — it manages its own state via the oobCode, so it must
-  // render outside the sign-in gate.
-  if (pathname === "/auth/action") return <>{children}</>;
 
   if (loading) {
     return (

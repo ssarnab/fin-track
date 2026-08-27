@@ -21,10 +21,10 @@ export type Identity = {
   emailVerified: boolean;
 };
 
-// Sends the reset/verify link straight to our own branded /auth/action page
-// instead of Firebase's plain hosted one.
+// `url` puts a "Continue" link on Firebase's hosted action page, pointing
+// back at this app instead of leaving the user stranded there.
 function actionCodeSettings() {
-  return { url: `${window.location.origin}/auth/action`, handleCodeInApp: true };
+  return { url: window.location.origin };
 }
 
 function toIdentity(user: User | null): Identity | null {
