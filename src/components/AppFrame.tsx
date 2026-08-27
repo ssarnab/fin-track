@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { AuthProvider, useIdentity } from "@/lib/AuthProvider";
 import Login from "@/components/Login";
+import VerifyEmail from "@/components/VerifyEmail";
 import NavBar from "@/components/NavBar";
 
 function Gate({ children }: { children: ReactNode }) {
@@ -17,6 +18,9 @@ function Gate({ children }: { children: ReactNode }) {
   }
 
   if (!identity) return <Login />;
+
+  // Google accounts arrive pre-verified; only email/password sign-ups land here.
+  if (!identity.emailVerified) return <VerifyEmail />;
 
   return (
     <div className="flex min-h-dvh flex-col">

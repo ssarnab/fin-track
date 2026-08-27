@@ -6,6 +6,7 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendEmailVerification,
   signOut as fbSignOut,
   type User,
 } from "firebase/auth";
@@ -16,6 +17,7 @@ export type Identity = {
   name: string;
   photo: string | null;
   email: string | null;
+  emailVerified: boolean;
 };
 
 function toIdentity(user: User | null): Identity | null {
@@ -25,6 +27,7 @@ function toIdentity(user: User | null): Identity | null {
     name: user.displayName ?? user.email ?? "User",
     photo: user.photoURL,
     email: user.email,
+    emailVerified: user.emailVerified,
   };
 }
 
@@ -45,11 +48,29 @@ export function useAuth() {
   }, []);
 
   const signUpWithEmail = useCallback(async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(auth, email, password);
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    // `url` puts a "Continue" link on Firebase's hosted verification page,
+    // pointing back at this app instead of leaving the user stranded there.
+    await sendEmailVerification(cred.user, { url: window.location.origin });
+    setIdentity(toIdentity(cred.user));
   }, []);
 
   const signInWithEmail = useCallback(async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
+  }, []);
+
+  const resendVerificationEmail = useCallback(async () => {
+    if (!auth.currentUser) throw new Error("Not signed in.");
+    await sendEmailVerification(auth.currentUser, { url: window.location.origin });
+  }, []);
+
+  // Firebase's `user.emailVerified` is a snapshot from when the ID token was
+  // issued — it won't update on its own after the user clicks the link in
+  // their inbox, so this re-fetches the user and re-syncs local state.
+  const refreshIdentity = useCallback(async () => {
+    if (!auth.currentUser) return;
+    await auth.currentUser.reload();
+    setIdentity(toIdentity(auth.currentUser));
   }, []);
 
   const signOut = useCallback(async () => {
@@ -62,6 +83,8 @@ export function useAuth() {
     signIn,
     signUpWithEmail,
     signInWithEmail,
+    resendVerificationEmail,
+    refreshIdentity,
     signOut,
   };
 }
