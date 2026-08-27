@@ -1,26 +1,100 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useIdentity } from "@/lib/AuthProvider";
 import ThemeToggle from "@/components/ThemeToggle";
+import { Field, Input, Button } from "@/components/ui";
+
+type Mode = "google" | "email" | "phone";
+
+const RECAPTCHA_CONTAINER_ID = "recaptcha-container";
+
+function friendlyError(e: unknown): string | null {
+  const msg = e instanceof Error ? e.message : String(e);
+  // A user closing the popup isn't a real error worth shouting about.
+  if (msg.includes("popup-closed") || msg.includes("cancelled")) return null;
+  if (msg.includes("auth/email-already-in-use")) return "That email is already registered — try signing in instead.";
+  if (msg.includes("auth/invalid-credential") || msg.includes("auth/wrong-password")) return "Wrong email or password.";
+  if (msg.includes("auth/user-not-found")) return "No account with that email — try creating one.";
+  if (msg.includes("auth/weak-password")) return "Password should be at least 6 characters.";
+  if (msg.includes("auth/invalid-phone-number")) return "Enter the phone number in international format, e.g. +8801XXXXXXXXX.";
+  if (msg.includes("auth/invalid-verification-code")) return "That code doesn't match — check and try again.";
+  if (msg.includes("auth/too-many-requests")) return "Too many attempts — please wait a bit and try again.";
+  return msg;
+}
 
 export default function Login() {
-  const { signIn } = useIdentity();
+  const { signIn, signUpWithEmail, signInWithEmail, sendPhoneOtp, confirmPhoneOtp } = useIdentity();
+  const [mode, setMode] = useState<Mode>("google");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handle() {
+  // Email
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+
+  // Phone
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+
+  async function handleGoogle() {
     setBusy(true);
     setError(null);
     try {
       await signIn();
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Sign-in failed";
-      // A user closing the popup isn't a real error worth shouting about.
-      if (!msg.includes("popup-closed") && !msg.includes("cancelled")) setError(msg);
+      setError(friendlyError(e));
     } finally {
       setBusy(false);
     }
+  }
+
+  async function handleEmailSubmit(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      if (isSignUp) await signUpWithEmail(email, password);
+      else await signInWithEmail(email, password);
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSendOtp(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await sendPhoneOtp(phone, RECAPTCHA_CONTAINER_ID);
+      setOtpSent(true);
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleVerifyOtp(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await confirmPhoneOtp(otp);
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function switchMode(next: Mode) {
+    setMode(next);
+    setError(null);
   }
 
   return (
@@ -40,19 +114,126 @@ export default function Login() {
           </div>
         </div>
 
-        <p className="mb-6 text-sm text-muted">
-          Sign in with Google to access your private ledger. Your data is scoped to
-          your account only.
-        </p>
+        <div className="mb-6 flex gap-1 rounded-xl border border-border bg-surface-2 p-1 text-sm">
+          {(["google", "email", "phone"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => switchMode(m)}
+              className={`flex-1 rounded-lg py-1.5 font-medium capitalize transition-colors ${
+                mode === m ? "bg-primary text-primary-fg" : "text-muted hover:text-fg"
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
 
-        <button
-          onClick={handle}
-          disabled={busy}
-          className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-surface-2 px-4 py-3 font-medium text-fg transition-colors hover:bg-border disabled:opacity-60"
-        >
-          <GoogleIcon />
-          {busy ? "Signing in…" : "Continue with Google"}
-        </button>
+        {mode === "google" && (
+          <>
+            <p className="mb-6 text-sm text-muted">
+              Sign in with Google to access your private ledger. Your data is scoped to
+              your account only.
+            </p>
+            <Button
+              variant="surface"
+              onClick={handleGoogle}
+              disabled={busy}
+              className="flex w-full items-center justify-center gap-3"
+            >
+              <GoogleIcon />
+              {busy ? "Signing in…" : "Continue with Google"}
+            </Button>
+          </>
+        )}
+
+        {mode === "email" && (
+          <form onSubmit={handleEmailSubmit} className="space-y-4">
+            <Field label="Email">
+              <Input
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
+            </Field>
+            <Field label="Password">
+              <Input
+                type="password"
+                required
+                minLength={6}
+                autoComplete={isSignUp ? "new-password" : "current-password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+              />
+            </Field>
+            <Button type="submit" disabled={busy} className="w-full">
+              {busy ? "Please wait…" : isSignUp ? "Create account" : "Sign in"}
+            </Button>
+            <button
+              type="button"
+              onClick={() => setIsSignUp((v) => !v)}
+              className="w-full text-center text-sm text-muted hover:text-fg"
+            >
+              {isSignUp ? "Already have an account? Sign in" : "New here? Create an account"}
+            </button>
+          </form>
+        )}
+
+        {mode === "phone" && (
+          <>
+            {!otpSent ? (
+              <form onSubmit={handleSendOtp} className="space-y-4">
+                <Field label="Phone number">
+                  <Input
+                    type="tel"
+                    required
+                    autoComplete="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+8801XXXXXXXXX"
+                  />
+                </Field>
+                <Button type="submit" disabled={busy} className="w-full">
+                  {busy ? "Sending…" : "Send code"}
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                <p className="text-sm text-muted">
+                  Enter the code sent to <span className="text-fg">{phone}</span>.
+                </p>
+                <Field label="Verification code">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    required
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    placeholder="123456"
+                  />
+                </Field>
+                <Button type="submit" disabled={busy} className="w-full">
+                  {busy ? "Verifying…" : "Verify"}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOtpSent(false);
+                    setOtp("");
+                  }}
+                  className="w-full text-center text-sm text-muted hover:text-fg"
+                >
+                  Use a different number
+                </button>
+              </form>
+            )}
+            {/* Invisible reCAPTCHA mounts here; nothing to see unless Firebase needs a challenge. */}
+            <div id={RECAPTCHA_CONTAINER_ID} />
+          </>
+        )}
 
         {error && (
           <p className="mt-4 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
