@@ -21,6 +21,12 @@ export type Identity = {
   emailVerified: boolean;
 };
 
+// Sends the reset/verify link straight to our own branded /auth/action page
+// instead of Firebase's plain hosted one.
+function actionCodeSettings() {
+  return { url: `${window.location.origin}/auth/action`, handleCodeInApp: true };
+}
+
 function toIdentity(user: User | null): Identity | null {
   if (!user) return null;
   return {
@@ -50,9 +56,7 @@ export function useAuth() {
 
   const signUpWithEmail = useCallback(async (email: string, password: string) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    // `url` puts a "Continue" link on Firebase's hosted verification page,
-    // pointing back at this app instead of leaving the user stranded there.
-    await sendEmailVerification(cred.user, { url: window.location.origin });
+    await sendEmailVerification(cred.user, actionCodeSettings());
     setIdentity(toIdentity(cred.user));
   }, []);
 
@@ -61,12 +65,12 @@ export function useAuth() {
   }, []);
 
   const resetPassword = useCallback(async (email: string) => {
-    await sendPasswordResetEmail(auth, email, { url: window.location.origin });
+    await sendPasswordResetEmail(auth, email, actionCodeSettings());
   }, []);
 
   const resendVerificationEmail = useCallback(async () => {
     if (!auth.currentUser) throw new Error("Not signed in.");
-    await sendEmailVerification(auth.currentUser, { url: window.location.origin });
+    await sendEmailVerification(auth.currentUser, actionCodeSettings());
   }, []);
 
   // Firebase's `user.emailVerified` is a snapshot from when the ID token was
