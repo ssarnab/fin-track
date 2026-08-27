@@ -131,7 +131,8 @@ export default function Login() {
         {mode === "email" && forgotPassword && (
           <form onSubmit={handleResetSubmit} className="space-y-4">
             <p className="text-sm text-muted">
-              Enter your email and we&apos;ll send you a link to reset your password.
+              Enter your email — if an account exists for it, we&apos;ll send a link to
+              reset the password.
             </p>
             <Field label="Email">
               <Input
@@ -148,7 +149,8 @@ export default function Login() {
             </Button>
             {resetSent && (
               <p className="text-center text-sm text-muted">
-                Check <span className="text-fg">{email}</span> for the link.
+                If <span className="text-fg">{email}</span> has an account, a link is on
+                its way — check the inbox (and spam folder).
               </p>
             )}
             <button
