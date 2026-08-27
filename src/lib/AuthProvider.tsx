@@ -9,6 +9,7 @@ type AuthContextValue = {
   signIn: () => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
   refreshIdentity: () => Promise<void>;
   signOut: () => Promise<void>;

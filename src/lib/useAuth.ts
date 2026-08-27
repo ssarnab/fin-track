@@ -7,6 +7,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  sendPasswordResetEmail,
   signOut as fbSignOut,
   type User,
 } from "firebase/auth";
@@ -59,6 +60,10 @@ export function useAuth() {
     await signInWithEmailAndPassword(auth, email, password);
   }, []);
 
+  const resetPassword = useCallback(async (email: string) => {
+    await sendPasswordResetEmail(auth, email, { url: window.location.origin });
+  }, []);
+
   const resendVerificationEmail = useCallback(async () => {
     if (!auth.currentUser) throw new Error("Not signed in.");
     await sendEmailVerification(auth.currentUser, { url: window.location.origin });
@@ -83,6 +88,7 @@ export function useAuth() {
     signIn,
     signUpWithEmail,
     signInWithEmail,
+    resetPassword,
     resendVerificationEmail,
     refreshIdentity,
     signOut,

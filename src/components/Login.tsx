@@ -20,7 +20,7 @@ function friendlyError(e: unknown): string | null {
 }
 
 export default function Login() {
-  const { signIn, signUpWithEmail, signInWithEmail } = useIdentity();
+  const { signIn, signUpWithEmail, signInWithEmail, resetPassword } = useIdentity();
   const [mode, setMode] = useState<Mode>("google");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +29,8 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [forgotPassword, setForgotPassword] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   async function handleGoogle() {
     setBusy(true);
@@ -56,9 +58,25 @@ export default function Login() {
     }
   }
 
+  async function handleResetSubmit(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await resetPassword(email);
+      setResetSent(true);
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function switchMode(next: Mode) {
     setMode(next);
     setError(null);
+    setForgotPassword(false);
+    setResetSent(false);
   }
 
   return (
@@ -110,7 +128,44 @@ export default function Login() {
           </>
         )}
 
-        {mode === "email" && (
+        {mode === "email" && forgotPassword && (
+          <form onSubmit={handleResetSubmit} className="space-y-4">
+            <p className="text-sm text-muted">
+              Enter your email and we&apos;ll send you a link to reset your password.
+            </p>
+            <Field label="Email">
+              <Input
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
+            </Field>
+            <Button type="submit" disabled={busy} className="w-full">
+              {busy ? "Sending…" : resetSent ? "Email sent again" : "Send reset link"}
+            </Button>
+            {resetSent && (
+              <p className="text-center text-sm text-muted">
+                Check <span className="text-fg">{email}</span> for the link.
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setForgotPassword(false);
+                setResetSent(false);
+                setError(null);
+              }}
+              className="w-full text-center text-sm text-muted hover:text-fg"
+            >
+              Back to sign in
+            </button>
+          </form>
+        )}
+
+        {mode === "email" && !forgotPassword && (
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <Field label="Email">
               <Input
@@ -133,6 +188,18 @@ export default function Login() {
                 placeholder="••••••••"
               />
             </Field>
+            {!isSignUp && (
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotPassword(true);
+                  setError(null);
+                }}
+                className="-mt-2 block text-sm text-muted hover:text-fg"
+              >
+                Forgot password?
+              </button>
+            )}
             <Button type="submit" disabled={busy} className="w-full">
               {busy ? "Please wait…" : isSignUp ? "Create account" : "Sign in"}
             </Button>
