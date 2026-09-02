@@ -17,8 +17,8 @@ import {
   Legend,
 } from "recharts";
 import { useReportData } from "@/lib/useReportData";
-import { money } from "@/components/ui";
-import type { Slice } from "@/lib/reports";
+import { money, Card, Badge, Skeleton } from "@/components/ui";
+import { topSlices, type Slice } from "@/lib/reports";
 
 const CHART_COLORS = [
   "var(--chart-1)",
@@ -46,12 +46,23 @@ function StatCard({
     danger: "text-danger",
     primary: "text-primary",
   }[tone];
+  const barClass = {
+    fg: "bg-border-strong",
+    success: "bg-success",
+    danger: "bg-danger",
+    primary: "bg-primary",
+  }[tone];
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4 shadow-(--shadow)">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
-      <p className={`mt-1 font-mono text-2xl font-semibold ${toneClass}`}>{money(value)}</p>
-      {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}
-    </div>
+    <Card hoverable className="relative overflow-hidden p-4">
+      <span className={`absolute inset-y-0 left-0 w-1 ${barClass}`} />
+      <p className="pl-2 text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
+      <p className={`mt-1.5 pl-2 text-2xl font-semibold tabular-nums ${toneClass}`}>{money(value)}</p>
+      {hint && (
+        <p className="mt-1 pl-2">
+          <Badge tone="neutral">{hint}</Badge>
+        </p>
+      )}
+    </Card>
   );
 }
 
@@ -65,14 +76,14 @@ function ChartCard({
   empty?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-5 shadow-(--shadow)">
-      <h3 className="mb-4 font-semibold text-fg">{title}</h3>
+    <Card className="p-5">
+      <h3 className="mb-4 font-semibold tracking-tight text-fg">{title}</h3>
       {empty ? (
         <div className="grid h-56 place-items-center text-sm text-muted">No data yet</div>
       ) : (
         <div className="h-56">{children}</div>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -87,12 +98,12 @@ function TooltipBox({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs shadow-(--shadow)">
+    <div className="rounded-xl border border-border bg-surface/95 px-3 py-2 text-xs shadow-(--shadow-lg) backdrop-blur-sm">
       {label && <p className="mb-1 font-medium text-fg">{label}</p>}
       {payload.map((p, i) => (
         <p key={i} className="flex items-center gap-2 text-muted">
           <span className="inline-block h-2 w-2 rounded-full" style={{ background: p.color }} />
-          {p.name}: <span className="font-mono text-fg">{money(Number(p.value ?? 0))}</span>
+          {p.name}: <span className="tabular-nums text-fg">{money(Number(p.value ?? 0))}</span>
         </p>
       ))}
     </div>
@@ -110,10 +121,10 @@ export default function Dashboard() {
       <div className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-2xl border border-border bg-surface" />
+            <Skeleton key={i} className="h-24" />
           ))}
         </div>
-        <div className="h-72 animate-pulse rounded-2xl border border-border bg-surface" />
+        <Skeleton className="h-72" />
       </div>
     );
   }
@@ -125,7 +136,7 @@ export default function Dashboard() {
     );
   }
 
-  const pieData: Slice[] = expenseSlices.length ? expenseSlices : assetSlices;
+  const pieData: Slice[] = topSlices(expenseSlices.length ? expenseSlices : assetSlices);
   const pieTitle = expenseSlices.length ? "Expense breakdown" : "Asset allocation";
   const hasMonthly = monthly.some((m) => m.income || m.expense);
 
@@ -144,10 +155,10 @@ export default function Dashboard() {
       </div>
 
       {txnCount === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-surface/60 p-10 text-center">
+        <Card className="border-dashed p-10 text-center">
           <p className="text-fg">No transactions yet.</p>
           <p className="mt-1 text-sm text-muted">Add entries from Home to unlock charts & insights.</p>
-        </div>
+        </Card>
       ) : (
         <>
           <ChartCard title="Net worth trend">
@@ -169,7 +180,7 @@ export default function Dashboard() {
                     dataKey="value"
                     name="Net worth"
                     stroke="var(--chart-1)"
-                    strokeWidth={2}
+                    strokeWidth={2.5}
                     fill="url(#nw)"
                   />
                 </AreaChart>
@@ -191,37 +202,62 @@ export default function Dashboard() {
                     <YAxis tick={{ fill: "var(--muted)", fontSize: 11 }} stroke="var(--border)" width={54} />
                     <Tooltip content={<TooltipBox />} cursor={{ fill: "var(--surface-2)" }} />
                     <Legend wrapperStyle={{ fontSize: 12, color: "var(--muted)" }} />
-                    <Bar dataKey="income" name="Income" fill="var(--chart-3)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="expense" name="Expense" fill="var(--chart-5)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="income" name="Income" fill="var(--chart-3)" radius={[6, 6, 0, 0]} />
+                    <Bar dataKey="expense" name="Expense" fill="var(--chart-5)" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
             </ChartCard>
 
-            <ChartCard title={pieTitle} empty={pieData.length === 0}>
-              {mounted && pieData.length > 0 && (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={45}
-                      outerRadius={80}
-                      paddingAngle={2}
-                    >
-                      {pieData.map((_, i) => (
-                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} stroke="var(--surface)" />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<TooltipBox />} />
-                    <Legend wrapperStyle={{ fontSize: 12, color: "var(--muted)" }} />
-                  </PieChart>
-                </ResponsiveContainer>
+            <Card className="p-5">
+              <h3 className="mb-4 font-semibold tracking-tight text-fg">{pieTitle}</h3>
+              {pieData.length === 0 ? (
+                <div className="grid h-56 place-items-center text-sm text-muted">No data yet</div>
+              ) : (
+                <>
+                  <div className="h-40">
+                    {mounted && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={pieData}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={45}
+                            outerRadius={80}
+                            paddingAngle={3}
+                            cornerRadius={4}
+                          >
+                            {pieData.map((_, i) => (
+                              <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} stroke="var(--surface)" />
+                            ))}
+                          </Pie>
+                          <Tooltip content={<TooltipBox />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                  {/* Custom legend — recharts' own <Legend> wraps unpredictably
+                      and overlaps the chart once there are more than a
+                      handful of entries, so `topSlices` caps the data and we
+                      lay the legend out ourselves. */}
+                  <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                    {pieData.map((s, i) => (
+                      <div key={s.name} className="flex items-center gap-1.5 text-xs">
+                        <span
+                          className="h-2 w-2 shrink-0 rounded-full"
+                          style={{ background: CHART_COLORS[i % CHART_COLORS.length] }}
+                        />
+                        <span className="truncate text-muted">{s.name}</span>
+                        <span className="ml-auto shrink-0 tabular-nums text-fg">{money(s.value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
-            </ChartCard>
+            </Card>
           </div>
         </>
       )}

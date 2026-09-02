@@ -3,23 +3,25 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useAccountTree } from "@/lib/useAccountTree";
+import { useBalances } from "@/lib/useBalances";
 import { createTransaction } from "@/lib/transactions";
 import { Button, Card, Field, Input, PageTitle } from "@/components/ui";
 import JournalSelect from "@/components/JournalSelect";
-
-function today(): string {
-  const d = new Date();
-  const off = d.getTimezoneOffset();
-  return new Date(d.getTime() - off * 60_000).toISOString().slice(0, 10);
-}
+import { todayISO } from "@/lib/date";
 
 export default function EntryForm() {
   const { tree, journals, loading } = useAccountTree(true);
+  const { balances } = useBalances();
+
+  const balanceByJournal = useMemo(
+    () => new Map(balances.map((b) => [b.journal_id, Number(b.balance)])),
+    [balances],
+  );
 
   const [inJournal, setInJournal] = useState<number | "">("");
   const [outJournal, setOutJournal] = useState<number | "">("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(today());
+  const [date, setDate] = useState(todayISO());
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
@@ -83,6 +85,7 @@ export default function EntryForm() {
               value={inJournal}
               onChange={setInJournal}
               placeholder="Choose In account"
+              balanceByJournal={balanceByJournal}
             />
           </Field>
 
@@ -92,6 +95,7 @@ export default function EntryForm() {
               value={outJournal}
               onChange={setOutJournal}
               placeholder="Choose Out account"
+              balanceByJournal={balanceByJournal}
             />
           </Field>
 

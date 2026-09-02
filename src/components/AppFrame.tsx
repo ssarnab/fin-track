@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { AuthProvider, useIdentity } from "@/lib/AuthProvider";
 import Login from "@/components/Login";
 import VerifyEmail from "@/components/VerifyEmail";
-import NavBar from "@/components/NavBar";
+import Sidebar from "@/components/Sidebar";
 
 function Gate({ children }: { children: ReactNode }) {
   const { identity, loading } = useIdentity();
@@ -23,9 +23,9 @@ function Gate({ children }: { children: ReactNode }) {
   if (!identity.emailVerified) return <VerifyEmail />;
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <NavBar />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
+    <div className="flex min-h-dvh md:flex-row flex-col">
+      <Sidebar />
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
     </div>
   );
 }

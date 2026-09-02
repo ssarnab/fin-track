@@ -3,9 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import AppFrame from "@/components/AppFrame";
 
-// Inter is the cross-platform stand-in for SF Pro. On Apple devices the CSS
-// stack (globals.css --font-sans) puts -apple-system / SF Pro first, so real
-// SF Pro is used there; Inter renders everywhere else.
+// Inter leads the font stack (globals.css --font-sans) — the Linear/Stripe
+// look this app targets, not a native-OS one.
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],

@@ -1,64 +1,72 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   Apple-inspired design tokens (SF Pro typography, monochrome-luxury palette,
-   generous white space, subtle depth). Dark is default; .light overrides.
-   Never hardcode white/black in components — use these tokens.
+   Design system — Linear-grade: true near-black surfaces, one confident
+   electric-violet primary, a cyan accent for pop. Sharp, high-contrast,
+   minimal decoration. Dark is default; .light overrides. Never hardcode
+   colors in components — use these tokens (bg-*, text-*, border-* Tailwind
+   classes map to them via @theme).
 --------------------------------------------------------------------------- */
 :root {
-  --bg: #000000;
-  --bg-elev: #0a0a0b;
-  --surface: #161618;
-  --surface-2: #1f1f22;
-  --border: #2a2a2d;
-  --border-strong: #3a3a3e;
-  --fg: #f5f5f7;
-  --muted: #86868b;
-  --primary: #0a84ff;
+  --bg: #09090b;
+  --bg-elev: #0d0d10;
+  --surface: #131316;
+  --surface-2: #1c1c21;
+  --border: #27272e;
+  --border-strong: #3a3a44;
+  --fg: #fafafa;
+  --muted: #8b8b96;
+  --primary: #7c5cff;
   --primary-fg: #ffffff;
-  --primary-hover: #3a9bff;
-  --accent: #64d2ff;
-  --success: #30d158;
-  --danger: #ff453a;
-  --warning: #ff9f0a;
-  --ring: rgba(10, 132, 255, 0.4);
+  --primary-hover: #9277ff;
+  --accent: #00d9ff;
+  --success: #00e599;
+  --danger: #ff3b5c;
+  --warning: #ffb020;
+  --ring: rgba(124, 92, 255, 0.5);
 
-  --chart-1: #0a84ff;
-  --chart-2: #64d2ff;
-  --chart-3: #30d158;
-  --chart-4: #ff9f0a;
-  --chart-5: #ff453a;
-  --chart-6: #bf5af2;
+  /* A cool-to-warm progression that reads as one family, not a grab-bag —
+     violet (primary) → blue → cyan → green → amber, ending in a neutral
+     slate reserved for "Other" buckets so the catch-all never competes
+     visually with real categories. */
+  --chart-1: #7c5cff;
+  --chart-2: #3b82f6;
+  --chart-3: #06b6d4;
+  --chart-4: #10b981;
+  --chart-5: #f59e0b;
+  --chart-6: #6b7280;
 
-  --shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.04), 0 10px 34px rgba(0, 0, 0, 0.55);
+  --shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 40px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.07), 0 30px 70px rgba(0, 0, 0, 0.7);
 }
 
 html.light {
-  --bg: #fbfbfd;
-  --bg-elev: #ffffff;
+  --bg: #ffffff;
+  --bg-elev: #fafafa;
   --surface: #ffffff;
-  --surface-2: #f5f5f7;
-  --border: #d2d2d7;
-  --border-strong: #c7c7cc;
-  --fg: #1d1d1f;
-  --muted: #6e6e73;
-  --primary: #0071e3;
+  --surface-2: #f4f4f6;
+  --border: #e4e4e9;
+  --border-strong: #d0d0d8;
+  --fg: #0a0a0c;
+  --muted: #6b6b76;
+  --primary: #6633ff;
   --primary-fg: #ffffff;
-  --primary-hover: #0077ed;
-  --accent: #0071e3;
-  --success: #248a3d;
-  --danger: #d70015;
-  --warning: #b25000;
-  --ring: rgba(0, 113, 227, 0.3);
+  --primary-hover: #5222e6;
+  --accent: #0091b3;
+  --success: #00875a;
+  --danger: #d6003d;
+  --warning: #b45900;
+  --ring: rgba(102, 51, 255, 0.35);
 
-  --chart-1: #0071e3;
-  --chart-2: #34aadc;
-  --chart-3: #248a3d;
-  --chart-4: #b25000;
-  --chart-5: #d70015;
-  --chart-6: #8944ab;
+  --chart-1: #6633ff;
+  --chart-2: #2563eb;
+  --chart-3: #0891b2;
+  --chart-4: #059669;
+  --chart-5: #d97706;
+  --chart-6: #6b7280;
 
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 12px 32px rgba(0, 0, 0, 0.07);
+  --shadow: 0 1px 2px rgba(10, 10, 12, 0.04), 0 16px 32px rgba(10, 10, 12, 0.08);
+  --shadow-lg: 0 4px 12px rgba(10, 10, 12, 0.06), 0 30px 60px rgba(10, 10, 12, 0.1);
 }
 
 @theme inline {
@@ -85,9 +93,8 @@ html.light {
   --color-chart-5: var(--chart-5);
   --color-chart-6: var(--chart-6);
 
-  /* SF Pro on Apple hardware, Inter (loaded) elsewhere, then system fallbacks */
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
-    var(--font-inter), "Segoe UI", Roboto, system-ui, sans-serif;
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
@@ -104,14 +111,14 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.014em;
 }
 
-/* Apple-style tightened tracking on headings */
 h1,
 h2,
 h3 {
-  letter-spacing: -0.022em;
+  letter-spacing: -0.025em;
+  font-weight: 650;
 }
 
 input,
@@ -128,6 +135,18 @@ textarea {
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+.animate-shimmer {
+  animation: shimmer 1.6s ease-in-out infinite;
 }
 
 /* ---------------------------------------------------------------------------

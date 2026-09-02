@@ -48,6 +48,16 @@ export function breakdownByKind(
     .sort((a, b) => b.value - a.value);
 }
 
+/** Caps a (already-sorted-desc) slice list to `max` entries, bucketing the
+ * rest into "Other" — keeps a pie chart's legend from overflowing when
+ * someone has dozens of categories. */
+export function topSlices(slices: Slice[], max = 5): Slice[] {
+  if (slices.length <= max) return slices;
+  const top = slices.slice(0, max);
+  const rest = slices.slice(max).reduce((s, x) => s + x.value, 0);
+  return rest > 0 ? [...top, { name: "Other", value: rest }] : top;
+}
+
 type KindMap = Map<number, ComponentKind>;
 
 export function journalKindMap(

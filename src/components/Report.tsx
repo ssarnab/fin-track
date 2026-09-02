@@ -42,6 +42,62 @@ const TYPE_BADGE: Record<TxnType, string> = {
   other: "bg-surface-2 text-muted",
 };
 
+type CategoryTotal = { id: number; name: string; ledger: string; value: number; pct: number };
+
+/** Groups the already-filtered rows by journal — expense rows by where the
+ * money landed (debit), income rows by where it came from (credit). Pure
+ * client-side aggregation of data the page already has, so it stays in sync
+ * with whatever period/account/search filters are active. */
+function groupByCategory(
+  rows: { t: Transaction; type: TxnType }[],
+  wantType: "expense" | "income",
+  journalInfo: Map<number, JournalInfo>,
+): CategoryTotal[] {
+  const totals = new Map<number, number>();
+  for (const { t, type } of rows) {
+    if (type !== wantType) continue;
+    const jid = wantType === "expense" ? t.debit_journal_id : t.credit_journal_id;
+    totals.set(jid, (totals.get(jid) ?? 0) + Number(t.amount));
+  }
+  const grand = [...totals.values()].reduce((s, v) => s + v, 0) || 1;
+  return [...totals.entries()]
+    .map(([id, value]) => ({
+      id,
+      name: journalInfo.get(id)?.name ?? "—",
+      ledger: journalInfo.get(id)?.ledger ?? "—",
+      value,
+      pct: (value / grand) * 100,
+    }))
+    .sort((a, b) => b.value - a.value);
+}
+
+function CategoryBreakdown({ title, tone, items }: { title: string; tone: "warning" | "success"; items: CategoryTotal[] }) {
+  if (items.length === 0) return null;
+  const barClass = tone === "warning" ? "bg-warning" : "bg-success";
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-5 shadow-(--shadow)">
+      <h3 className="mb-3 font-semibold tracking-tight text-fg">{title}</h3>
+      <div className="space-y-3">
+        {items.map((c) => (
+          <div key={c.id}>
+            <div className="flex items-baseline justify-between gap-3 text-sm">
+              <span className="truncate text-fg">
+                {c.name} <span className="text-xs text-muted">· {c.ledger}</span>
+              </span>
+              <span className="shrink-0 tabular-nums font-medium text-fg">
+                {money(c.value)} <span className="text-xs text-muted">({c.pct.toFixed(0)}%)</span>
+              </span>
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-2">
+              <div className={`h-full rounded-full ${barClass}`} style={{ width: `${c.pct}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Report() {
   const { txns, journals, journalInfo, loading, error, reload } = useTransactionsView();
   const { identity } = useIdentity();
@@ -82,6 +138,9 @@ export default function Report() {
       })
       .map((t) => ({ t, type: classify(t, journalInfo) }));
   }, [txns, from, to, account, type, search, journalInfo]);
+
+  const expenseByCategory = useMemo(() => groupByCategory(rows, "expense", journalInfo), [rows, journalInfo]);
+  const incomeByCategory = useMemo(() => groupByCategory(rows, "income", journalInfo), [rows, journalInfo]);
 
   const summary = useMemo(() => {
     let income = 0,
@@ -210,6 +269,13 @@ export default function Report() {
             <Stat label="Net" value={summary.net} tone={summary.net < 0 ? "text-danger" : "text-fg"} />
           </div>
         </div>
+
+        {(expenseByCategory.length > 0 || incomeByCategory.length > 0) && (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <CategoryBreakdown title="Spending by category" tone="warning" items={expenseByCategory} />
+            <CategoryBreakdown title="Income by source" tone="success" items={incomeByCategory} />
+          </div>
+        )}
 
         <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-(--shadow)">
           <table className="w-full text-sm">

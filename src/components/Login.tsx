@@ -80,14 +80,22 @@ export default function Login() {
   }
 
   return (
-    <div className="relative flex min-h-dvh items-center justify-center bg-bg px-4">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-bg px-4">
+      {/* A radial-gradient glow is far cheaper to paint than a huge blurred
+          box-shadow — this is static but still costs a large rasterized
+          layer on low-end GPUs if done the expensive way. */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-1/2 h-105 w-105 -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{ background: "radial-gradient(circle, var(--primary) 0%, transparent 70%)", opacity: 0.18 }}
+      />
+
       <div className="absolute right-4 top-4">
         <ThemeToggle />
       </div>
 
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-8 shadow-xl">
+      <div className="relative w-full max-w-sm rounded-2xl border border-border bg-surface p-8 shadow-(--shadow-lg)">
         <div className="mb-6 flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-fg font-semibold text-lg">
+          <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-fg font-semibold text-lg shadow-(--shadow)">
             ৳
           </div>
           <div>
