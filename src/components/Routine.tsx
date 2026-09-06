@@ -19,8 +19,8 @@ export default function Routine() {
   }, []);
 
   return (
-    <div className="space-y-5">
-      <div className="flex gap-1 rounded-xl border border-border bg-surface-2 p-1 text-sm">
+    <div className="space-y-3">
+      <div className="flex gap-0.5 rounded-xl bg-surface-2 p-0.5 text-body">
         {([
           ["today", "Today"],
           ["progress", "Progress"],
@@ -29,8 +29,8 @@ export default function Routine() {
           <button
             key={value}
             onClick={() => setTab(value)}
-            className={`flex-1 rounded-lg py-1.5 font-medium transition-colors ${
-              tab === value ? "bg-primary text-primary-fg" : "text-muted hover:text-fg"
+            className={`flex-1 rounded-[10px] py-1.5 font-medium transition-all duration-150 ${
+              tab === value ? "bg-primary text-primary-fg shadow-(--shadow)" : "text-muted hover:text-fg"
             }`}
           >
             {label}

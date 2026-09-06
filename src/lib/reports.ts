@@ -1,4 +1,5 @@
-import type { JournalBalance, Transaction, ComponentKind, Journal } from "@/lib/types";
+import { toISO } from "@/lib/date";
+import type { JournalBalance, Transaction, ComponentKind, Journal, Component, Ledger } from "@/lib/types";
 
 export type Totals = {
   assets: number;
@@ -107,16 +108,7 @@ export function monthlyIncomeExpense(
 export function netWorthTrend(txns: Transaction[], kinds: KindMap): TrendPoint[] {
   const perDay = new Map<string, number>();
   for (const t of txns) {
-    const amt = Number(t.amount);
-    const kd = kinds.get(t.debit_journal_id);
-    const kc = kinds.get(t.credit_journal_id);
-    let assetDelta = 0;
-    let liabDelta = 0;
-    if (kd === "asset") assetDelta += amt;
-    if (kc === "asset") assetDelta -= amt;
-    if (kd === "liability") liabDelta -= amt;
-    if (kc === "liability") liabDelta += amt;
-    const delta = assetDelta - liabDelta;
+    const delta = netWorthDelta(t, kinds);
     if (delta === 0) continue;
     perDay.set(t.txn_date, (perDay.get(t.txn_date) ?? 0) + delta);
   }
@@ -127,4 +119,149 @@ export function netWorthTrend(txns: Transaction[], kinds: KindMap): TrendPoint[]
     running += perDay.get(date)!;
     return { date, value: running };
   });
+}
+
+// ---------------------------------------------------------------------------
+// Shared analytics — the dashboard and the report page were each deriving
+// their own totals and groupings from the same rows.
+// ---------------------------------------------------------------------------
+
+/** Everything the UI needs to label a journal, without re-walking the tree. */
+export type JournalMeta = {
+  id: number;
+  name: string;
+  ledger: string;
+  component: string;
+  kind: ComponentKind;
+};
+
+export function buildJournalMeta(
+  components: Component[],
+  ledgers: Ledger[],
+  journals: Journal[],
+): Map<number, JournalMeta> {
+  const comp = new Map(components.map((c) => [c.id, c]));
+  const led = new Map(ledgers.map((l) => [l.id, l]));
+  const m = new Map<number, JournalMeta>();
+  for (const j of journals) {
+    const l = led.get(j.ledger_id);
+    const c = l ? comp.get(l.component_id) : undefined;
+    m.set(j.id, {
+      id: j.id,
+      name: j.name,
+      ledger: l?.name ?? "—",
+      component: c?.name ?? "—",
+      kind: c?.kind ?? "asset",
+    });
+  }
+  return m;
+}
+
+/** Calendar month `offset` months back from today, as local ISO dates. */
+export function monthRange(offset = 0): { from: string; to: string; label: string } {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+  const end = new Date(now.getFullYear(), now.getMonth() - offset + 1, 0);
+  return {
+    from: toISO(start),
+    to: toISO(end),
+    label: `${MONTH_LABELS[start.getMonth()]} ${start.getFullYear()}`,
+  };
+}
+
+export type FlowTotals = { income: number; expense: number; net: number; count: number };
+
+/** Income/expense moved within an optional date window. */
+export function flowTotals(
+  txns: Transaction[],
+  kinds: KindMap,
+  from?: string,
+  to?: string,
+): FlowTotals {
+  let income = 0;
+  let expense = 0;
+  let count = 0;
+  for (const t of txns) {
+    if (from && t.txn_date < from) continue;
+    if (to && t.txn_date > to) continue;
+    count++;
+    const amt = Number(t.amount);
+    if (kinds.get(t.credit_journal_id) === "income") income += amt;
+    if (kinds.get(t.debit_journal_id) === "expense") expense += amt;
+  }
+  return { income, expense, net: income - expense, count };
+}
+
+/** Percent change from `prev` to `curr`. Null when there is no baseline to
+ * compare against — "+∞%" against a zero month is noise, not insight. */
+export function pctChange(curr: number, prev: number): number | null {
+  if (!prev) return null;
+  return ((curr - prev) / Math.abs(prev)) * 100;
+}
+
+/** Share of income kept. Null when nothing came in that period. */
+export function savingsRate(f: FlowTotals): number | null {
+  if (f.income <= 0) return null;
+  return (f.net / f.income) * 100;
+}
+
+/** Which level of the account tree a breakdown rolls up to. The same rows
+ * regrouped — "Groceries", or its group "Food", or its category "Expense". */
+export type GroupBy = "account" | "group" | "category";
+
+export const GROUP_BY_LABEL: Record<GroupBy, string> = {
+  account: "Account",
+  group: "Group",
+  category: "Category",
+};
+
+/** Money in (or out) per account/group/category over an optional window.
+ * Expense rows are keyed by where the money landed (debit), income rows by
+ * where it came from (credit). */
+export function groupFlow(
+  txns: Transaction[],
+  meta: Map<number, JournalMeta>,
+  want: "expense" | "income",
+  by: GroupBy = "account",
+  from?: string,
+  to?: string,
+): Slice[] {
+  const keyOf = (m: JournalMeta) => (by === "account" ? m.name : by === "group" ? m.ledger : m.component);
+  const totals = new Map<string, number>();
+  for (const t of txns) {
+    if (from && t.txn_date < from) continue;
+    if (to && t.txn_date > to) continue;
+    const m = meta.get(want === "expense" ? t.debit_journal_id : t.credit_journal_id);
+    if (!m || m.kind !== want) continue;
+    const k = keyOf(m);
+    totals.set(k, (totals.get(k) ?? 0) + Number(t.amount));
+  }
+  return [...totals.entries()]
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value);
+}
+
+/** What one transaction does to net worth: assets up, liabilities down. */
+function netWorthDelta(t: Transaction, kinds: KindMap): number {
+  const amt = Number(t.amount);
+  const kd = kinds.get(t.debit_journal_id);
+  const kc = kinds.get(t.credit_journal_id);
+  let assets = 0;
+  let liabs = 0;
+  if (kd === "asset") assets += amt;
+  if (kc === "asset") assets -= amt;
+  if (kd === "liability") liabs -= amt;
+  if (kc === "liability") liabs += amt;
+  return assets - liabs;
+}
+
+/** Net-worth movement inside a window — the delta behind "▲ ৳4,200 this month". */
+export function netWorthChange(txns: Transaction[], kinds: KindMap, from?: string, to?: string): number {
+  let total = 0;
+  for (const t of txns) {
+    if (from && t.txn_date < from) continue;
+    if (to && t.txn_date > to) continue;
+    total += netWorthDelta(t, kinds);
+  }
+  return total;
 }

@@ -100,11 +100,11 @@ export default function Login() {
           </div>
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-fg">FinTrack</h1>
-            <p className="text-sm text-muted">Track your day-to-day balance</p>
+            <p className="text-body text-muted">Track your day-to-day balance</p>
           </div>
         </div>
 
-        <div className="mb-6 flex gap-1 rounded-xl border border-border bg-surface-2 p-1 text-sm">
+        <div className="mb-6 flex gap-1 rounded-xl border border-border bg-surface-2 p-1 text-body">
           {(["google", "email"] as const).map((m) => (
             <button
               key={m}
@@ -120,7 +120,7 @@ export default function Login() {
 
         {mode === "google" && (
           <>
-            <p className="mb-6 text-sm text-muted">
+            <p className="mb-6 text-body text-muted">
               Sign in with Google to access your private ledger. Your data is scoped to
               your account only.
             </p>
@@ -138,12 +138,14 @@ export default function Login() {
 
         {mode === "email" && forgotPassword && (
           <form onSubmit={handleResetSubmit} className="space-y-4">
-            <p className="text-sm text-muted">
+            <p className="text-body text-muted">
               Enter your email — if an account exists for it, we&apos;ll send a link to
               reset the password.
             </p>
             <Field label="Email">
               <Input
+                pad="px-3 py-2.5"
+                radius="rounded-xl"
                 type="email"
                 required
                 autoComplete="email"
@@ -152,11 +154,11 @@ export default function Login() {
                 placeholder="you@example.com"
               />
             </Field>
-            <Button type="submit" disabled={busy} className="w-full">
+            <Button type="submit" disabled={busy} pad="px-3 py-2.5" text="text-body" className="w-full">
               {busy ? "Sending…" : resetSent ? "Email sent again" : "Send reset link"}
             </Button>
             {resetSent && (
-              <p className="text-center text-sm text-muted">
+              <p className="text-center text-body text-muted">
                 If <span className="text-fg">{email}</span> has an account, a link is on
                 its way — check the inbox (and spam folder).
               </p>
@@ -168,7 +170,7 @@ export default function Login() {
                 setResetSent(false);
                 setError(null);
               }}
-              className="w-full text-center text-sm text-muted hover:text-fg"
+              className="w-full text-center text-body text-muted hover:text-fg"
             >
               Back to sign in
             </button>
@@ -179,6 +181,8 @@ export default function Login() {
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <Field label="Email">
               <Input
+                pad="px-3 py-2.5"
+                radius="rounded-xl"
                 type="email"
                 required
                 autoComplete="email"
@@ -189,6 +193,8 @@ export default function Login() {
             </Field>
             <Field label="Password">
               <Input
+                pad="px-3 py-2.5"
+                radius="rounded-xl"
                 type="password"
                 required
                 minLength={6}
@@ -205,18 +211,18 @@ export default function Login() {
                   setForgotPassword(true);
                   setError(null);
                 }}
-                className="-mt-2 block text-sm text-muted hover:text-fg"
+                className="-mt-2 block text-body text-muted hover:text-fg"
               >
                 Forgot password?
               </button>
             )}
-            <Button type="submit" disabled={busy} className="w-full">
+            <Button type="submit" disabled={busy} pad="px-3 py-2.5" text="text-body" className="w-full">
               {busy ? "Please wait…" : isSignUp ? "Create account" : "Sign in"}
             </Button>
             <button
               type="button"
               onClick={() => setIsSignUp((v) => !v)}
-              className="w-full text-center text-sm text-muted hover:text-fg"
+              className="w-full text-center text-body text-muted hover:text-fg"
             >
               {isSignUp ? "Already have an account? Sign in" : "New here? Create an account"}
             </button>
@@ -224,7 +230,7 @@ export default function Login() {
         )}
 
         {error && (
-          <p className="mt-4 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
+          <p className="mt-4 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-body text-danger">
             {error}
           </p>
         )}

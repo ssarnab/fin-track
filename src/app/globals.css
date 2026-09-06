@@ -36,8 +36,11 @@
   --chart-5: #f59e0b;
   --chart-6: #6b7280;
 
-  --shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 40px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.07), 0 30px 70px rgba(0, 0, 0, 0.7);
+  /* Structure comes from the hairline borders, not from elevation — a big
+     drop shadow under every card is what makes a dense UI look cheap. Real
+     elevation is reserved for things that float (menus, dialogs). */
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.4), 0 12px 36px rgba(0, 0, 0, 0.5);
 }
 
 html.light {
@@ -65,8 +68,8 @@ html.light {
   --chart-5: #d97706;
   --chart-6: #6b7280;
 
-  --shadow: 0 1px 2px rgba(10, 10, 12, 0.04), 0 16px 32px rgba(10, 10, 12, 0.08);
-  --shadow-lg: 0 4px 12px rgba(10, 10, 12, 0.06), 0 30px 60px rgba(10, 10, 12, 0.1);
+  --shadow: 0 1px 2px rgba(10, 10, 12, 0.05);
+  --shadow-lg: 0 2px 6px rgba(10, 10, 12, 0.06), 0 12px 32px rgba(10, 10, 12, 0.12);
 }
 
 @theme inline {
@@ -96,6 +99,26 @@ html.light {
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI",
     Roboto, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* ---------------------------------------------------------------------
+     Type scale. Six named roles, nothing in between — density comes from
+     spacing, never from shrinking text below what is comfortable to read.
+     11px is the floor, and only for uppercase labels, where the extra
+     weight and letter-spacing carry the legibility.
+  --------------------------------------------------------------------- */
+  --text-micro: 0.6875rem;        /* 11px — uppercase labels, legend keys */
+  --text-micro--line-height: 1.45;
+  --text-micro--letter-spacing: 0.06em;
+  --text-meta: 0.8125rem;         /* 13px — secondary: dates, groups, hints */
+  --text-meta--line-height: 1.45;
+  --text-body: 0.875rem;          /* 14px — primary content and controls */
+  --text-body--line-height: 1.5;
+  --text-title: 0.9375rem;        /* 15px — panel and section titles */
+  --text-title--line-height: 1.4;
+  --text-page: 1.3125rem;         /* 21px — page titles */
+  --text-page--line-height: 1.25;
+  --text-metric: 1.25rem;         /* 20px — stat values */
+  --text-metric--line-height: 1.2;
 }
 
 html {
@@ -147,6 +170,112 @@ textarea {
 }
 .animate-shimmer {
   animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* Chrome's clock/calendar button is drawn dark-on-dark and eats width in the
+   dense routine rows — dim it and let the surrounding button light it up. */
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.35;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 2px;
+  filter: invert(var(--picker-invert, 1));
+  transition: opacity 0.15s ease;
+}
+input[type="time"]:hover::-webkit-calendar-picker-indicator,
+input[type="date"]:hover::-webkit-calendar-picker-indicator {
+  opacity: 0.8;
+}
+html.light {
+  --picker-invert: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Range slider — used for the routine's whole-day schedule shift. The track
+   fill is painted by the component (a centre-out gradient, since the value
+   is signed), so only the thumb and base track live here.
+--------------------------------------------------------------------------- */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  /* No width or background here — a plain rule like this is unlayered and
+     would beat the Tailwind w-* utility the caller sets, and the component
+     paints the fill and hour ticks into the track itself. */
+  height: 5px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease;
+}
+.slider::-moz-range-thumb {
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s ease;
+}
+.slider:hover::-webkit-slider-thumb,
+.slider:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+.slider:hover::-moz-range-thumb,
+.slider:active::-moz-range-thumb {
+  transform: scale(1.2);
+}
+.slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px var(--ring);
+}
+.slider:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+/* ---------------------------------------------------------------------------
+   Dialog entrance — a quick fade for the scrim, a short rise for the sheet.
+--------------------------------------------------------------------------- */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.15s ease-out;
+}
+.animate-sheet {
+  animation: sheet-in 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-sheet,
+  .animate-shimmer {
+    animation: none;
+  }
 }
 
 /* ---------------------------------------------------------------------------

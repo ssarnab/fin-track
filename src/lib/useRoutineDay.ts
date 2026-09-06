@@ -11,8 +11,9 @@ import {
   setRoutineCheckExcluded,
   setRoutineDayType,
   setRoutineDayShift,
+  saveRoutineItemOrder,
 } from "@/lib/routine";
-import { dayProgress } from "@/lib/routineCalc";
+import { dayProgress, reflowSchedule } from "@/lib/routineCalc";
 import { shiftTime } from "@/lib/time";
 import { useRealtime } from "@/lib/useRealtime";
 import type { DayType, RoutineItem, RoutineCheck } from "@/lib/types";
@@ -119,11 +120,49 @@ export function useRoutineDay(date: string) {
     [date, load],
   );
 
-  // A wheel gesture fires this dozens of times a second — writing to the
+  /** Drag-and-drop reorder, in one of two modes.
+   *
+   * Re-flow (default): the blocks are one continuous day, so moving one
+   * re-flows the whole run — each block keeps its own duration and slots in
+   * right after the previous one, anchored at the first block's start. The
+   * moved block takes its time from where it lands, everything it displaced
+   * shifts to fill the hole, and the day still adds up to 24h.
+   *
+   * Keep-times: only the order changes. Every block holds the exact time it
+   * already has — for when the list order is wrong but the schedule is right.
+   *
+   * Either way this edits the shared template for the day-type, not just
+   * this date. */
+  const moveItem = useCallback(
+    async (from: number, to: number, keepTimes = false) => {
+      if (from === to || from < 0 || to < 0 || from >= items.length || to >= items.length) return;
+      const anchor = items.find((it) => it.start_time)?.start_time ?? "00:00";
+      const next = [...items];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      const reflowed = (keepTimes ? next : reflowSchedule(next, anchor)).map((it, i) => ({
+        ...it,
+        sort_order: i,
+      }));
+      setItems(reflowed); // optimistic
+      try {
+        await saveRoutineItemOrder(reflowed);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to save the new order");
+      } finally {
+        // The realtime subscription fires on the first row to land, so it can
+        // repaint from a half-written server state — resync once it is done.
+        await load();
+      }
+    },
+    [items, load],
+  );
+
+  // A drag gesture fires this dozens of times a second — writing to the
   // server on every tick let concurrent upserts for the same (new) row race
   // each other (one arriving without day_type, since only the row's own
   // getOrCreateRoutineDay call carries it, PGRST 23502). Update the UI
-  // instantly but only persist once scrolling/clicking settles.
+  // instantly but only persist once the slider settles.
   const shiftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
     if (shiftTimer.current) clearTimeout(shiftTimer.current);
@@ -141,7 +180,7 @@ export function useRoutineDay(date: string) {
     [date],
   );
 
-  const progress = dayProgress(items, checks);
+  const progress = dayProgress(items, checks, shiftMinutes);
 
   return {
     dayType,
@@ -157,6 +196,7 @@ export function useRoutineDay(date: string) {
     setExcluded,
     changeDayType,
     changeShift,
+    moveItem,
     reload: load,
     ...progress,
   };

@@ -122,19 +122,19 @@ export default function JournalSelect({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-surface-2 px-3 py-2.5 text-left outline-none transition hover:border-border-strong focus:border-primary focus:ring-2 focus:ring-ring"
+        className="flex w-full items-center justify-between gap-3 rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-left text-body outline-none transition hover:border-border-strong focus:border-primary focus:ring-2 focus:ring-ring"
       >
         {selected ? (
           <span className="min-w-0">
             <span className="block truncate font-medium text-fg">{selected.name}</span>
-            <span className="block truncate text-xs text-muted">{selected.groupLabel}</span>
+            <span className="block truncate text-meta text-muted">{selected.groupLabel}</span>
           </span>
         ) : (
           <span className="truncate text-muted">{placeholder}</span>
         )}
         <span className="flex shrink-0 items-center gap-2">
           {selectedBal !== undefined && (
-            <span className={`text-sm font-semibold tabular-nums ${balanceTint(selectedBal)}`}>
+            <span className={`text-body font-semibold tabular-nums ${balanceTint(selectedBal)}`}>
               {money(selectedBal)}
             </span>
           )}
@@ -143,24 +143,24 @@ export default function JournalSelect({
       </button>
 
       {open && (
-        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-border bg-surface shadow-xl">
-          <div className="border-b border-border p-2">
+        <div className="absolute z-20 mt-1.5 w-full overflow-hidden rounded-xl border border-border bg-surface shadow-(--shadow-lg)">
+          <div className="border-b border-border p-1.5">
             <input
               ref={searchRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={onKeyDown}
               placeholder="Search accounts…"
-              className="w-full rounded-lg bg-surface-2 px-3 py-2 text-sm text-fg outline-none placeholder:text-muted"
+              className="w-full rounded-md bg-surface-2 px-2.5 py-1.5 text-body text-fg outline-none placeholder:text-muted"
             />
           </div>
           <div className="max-h-72 overflow-y-auto p-1.5">
             {groups.length === 0 && (
-              <p className="px-3 py-6 text-center text-sm text-muted">No matching accounts</p>
+              <p className="px-3 py-6 text-center text-body text-muted">No matching accounts</p>
             )}
             {groups.map((g) => (
               <div key={g.label} className="mb-1 last:mb-0">
-                <p className="px-2 pb-1 pt-2 text-[11px] font-medium uppercase tracking-wide text-muted">
+                <p className="px-2 pb-1 pt-2 text-micro font-semibold text-muted uppercase">
                   {g.label}
                 </p>
                 {g.items.map((o) => {
@@ -171,7 +171,7 @@ export default function JournalSelect({
                       type="button"
                       onMouseEnter={() => setHighlight(o.id)}
                       onClick={() => select(o.id)}
-                      className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                      className={`flex w-full items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left text-body transition-colors ${
                         highlight === o.id ? "bg-surface-2" : ""
                       } ${o.id === value ? "text-primary" : "text-fg"}`}
                     >

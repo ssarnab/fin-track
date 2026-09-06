@@ -4,23 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { listTransactions } from "@/lib/transactions";
 import { listComponents, listLedgers, listJournals } from "@/lib/accounts";
 import { useRealtime } from "@/lib/useRealtime";
-import type {
-  Transaction,
-  Component,
-  Ledger,
-  Journal,
-  ComponentKind,
-} from "@/lib/types";
+import { buildJournalMeta, journalKindMap, type JournalMeta } from "@/lib/reports";
+import type { Transaction, Component, Ledger, Journal, ComponentKind } from "@/lib/types";
 
-export type JournalInfo = {
-  id: number;
-  name: string;
-  ledger: string;
-  component: string;
-  kind: ComponentKind;
-};
+/** Kept as an alias so callers keep reading naturally; the shape is the
+ * shared one the analytics helpers take. */
+export type JournalInfo = JournalMeta;
 
-export function useTransactionsView() {
+export function useTransactionsView(limit = 2000) {
   const [txns, setTxns] = useState<Transaction[]>([]);
   const [components, setComponents] = useState<Component[]>([]);
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
@@ -31,7 +22,7 @@ export function useTransactionsView() {
   const load = useCallback(async () => {
     try {
       const [t, c, l, j] = await Promise.all([
-        listTransactions(2000),
+        listTransactions(limit),
         listComponents(),
         listLedgers(),
         listJournals(),
@@ -46,30 +37,28 @@ export function useTransactionsView() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [limit]);
 
   useEffect(() => {
     load();
   }, [load]);
   useRealtime(["transactions", "journal", "ledger", "component"], load);
 
-  const journalInfo = useMemo(() => {
-    const comp = new Map(components.map((c) => [c.id, c]));
-    const led = new Map(ledgers.map((l) => [l.id, l]));
-    const m = new Map<number, JournalInfo>();
-    for (const j of journals) {
-      const l = led.get(j.ledger_id);
-      const c = l ? comp.get(l.component_id) : undefined;
-      m.set(j.id, {
-        id: j.id,
-        name: j.name,
-        ledger: l?.name ?? "—",
-        component: c?.name ?? "—",
-        kind: c?.kind ?? "asset",
-      });
+  const journalInfo = useMemo(
+    () => buildJournalMeta(components, ledgers, journals),
+    [components, ledgers, journals],
+  );
+
+  // Journal → kind, for the analytics helpers that only need the kind.
+  const kinds = useMemo(() => {
+    const componentKind = new Map<number, ComponentKind>(components.map((c) => [c.id, c.kind]));
+    const ledgerKind = new Map<number, ComponentKind>();
+    for (const l of ledgers) {
+      const k = componentKind.get(l.component_id);
+      if (k) ledgerKind.set(l.id, k);
     }
-    return m;
+    return journalKindMap(journals, ledgerKind);
   }, [components, ledgers, journals]);
 
-  return { txns, journals, journalInfo, loading, error, reload: load };
+  return { txns, journals, journalInfo, kinds, loading, error, reload: load };
 }

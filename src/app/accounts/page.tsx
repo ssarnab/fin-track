@@ -6,7 +6,7 @@ export default function AccountsPage() {
     <div>
       <PageTitle
         title="Accounts"
-        subtitle="Categories → groups → accounts. Hover a row to rename or delete."
+        subtitle="Categories → groups → accounts. Hover a row to rename or delete it."
       />
       <AccountsTree />
     </div>

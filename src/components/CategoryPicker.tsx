@@ -6,9 +6,12 @@ import { CATEGORY_PRESETS, categoryColor } from "@/lib/routineCategory";
 export default function CategoryPicker({
   value,
   onChange,
+  compact = false,
 }: {
   value: string | null;
   onChange: (v: string | null) => void;
+  /** Borderless pill sized for a dense table row, rather than a form field. */
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [custom, setCustom] = useState("");
@@ -34,7 +37,11 @@ export default function CategoryPicker({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2.5 text-left text-sm outline-none transition-all duration-150 hover:border-border-strong focus:border-primary focus:ring-4 focus:ring-ring"
+        className={
+          compact
+            ? "flex w-full items-center gap-1.5 rounded-md border border-transparent px-1.5 py-1 text-left text-meta outline-none transition-colors hover:border-border hover:bg-surface-2 focus:border-primary"
+            : "flex w-full items-center gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2.5 text-left text-body outline-none transition-all duration-150 hover:border-border-strong focus:border-primary focus:ring-4 focus:ring-ring"
+        }
       >
         {value ? (
           <>
@@ -42,7 +49,7 @@ export default function CategoryPicker({
             <span className="truncate text-fg">{value}</span>
           </>
         ) : (
-          <span className="text-muted">No category</span>
+          <span className="text-muted">{compact ? "—" : "No category"}</span>
         )}
         <ChevronIcon className={`ml-auto shrink-0 text-muted transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
@@ -54,7 +61,7 @@ export default function CategoryPicker({
               key={p}
               type="button"
               onClick={() => select(p)}
-              className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors hover:bg-surface-2 ${
+              className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-body transition-colors hover:bg-surface-2 ${
                 value === p ? "text-primary" : "text-fg"
               }`}
             >
@@ -71,7 +78,7 @@ export default function CategoryPicker({
                 if (e.key === "Enter" && custom.trim()) select(custom.trim());
               }}
               placeholder="Custom…"
-              className="w-full rounded-lg bg-surface-2 px-2.5 py-1.5 text-sm text-fg outline-none placeholder:text-muted"
+              className="w-full rounded-lg bg-surface-2 px-2.5 py-1.5 text-body text-fg outline-none placeholder:text-muted"
             />
           </div>
 
@@ -79,7 +86,7 @@ export default function CategoryPicker({
             <button
               type="button"
               onClick={() => select(null)}
-              className="mt-1 w-full rounded-lg px-2.5 py-1.5 text-left text-xs text-muted transition-colors hover:text-danger"
+              className="mt-1 w-full rounded-lg px-2.5 py-1.5 text-left text-meta text-muted transition-colors hover:text-danger"
             >
               Clear
             </button>

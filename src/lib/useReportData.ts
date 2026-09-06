@@ -10,6 +10,7 @@ import {
   monthlyIncomeExpense,
   netWorthTrend,
   journalKindMap,
+  buildJournalMeta,
 } from "@/lib/reports";
 import type {
   JournalBalance,
@@ -71,9 +72,14 @@ export function useReportData() {
       totals: computeTotals(balances),
       expenseSlices: breakdownByKind(balances, "expense"),
       assetSlices: breakdownByKind(balances, "asset"),
-      monthly: monthlyIncomeExpense(txns, kinds, 6),
+      // Twelve months of bars, sliced down by whatever range the UI picks.
+      monthly: monthlyIncomeExpense(txns, kinds, 12),
       trend: netWorthTrend(txns, kinds),
       txnCount: txns.length,
+      txns,
+      kinds,
+      journalMeta: buildJournalMeta(components, ledgers, journals),
+      balances,
     };
   }, [balances, txns, components, ledgers, journals]);
 

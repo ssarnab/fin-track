@@ -52,28 +52,28 @@ export default function VerifyEmail() {
           ৳
         </div>
         <h1 className="text-xl font-semibold tracking-tight text-fg">Verify your email</h1>
-        <p className="mt-2 text-sm text-muted">
+        <p className="mt-2 text-body text-muted">
           We sent a verification link to <span className="text-fg">{identity?.email}</span>.
           Click it, then come back here.
         </p>
 
         <div className="mt-6 space-y-3">
-          <Button onClick={handleRefresh} disabled={busy} className="w-full">
+          <Button onClick={handleRefresh} disabled={busy} pad="px-3 py-2.5" text="text-body" className="w-full">
             {busy ? "Checking…" : "I've verified — Refresh"}
           </Button>
-          <Button variant="surface" onClick={handleResend} disabled={busy} className="w-full">
+          <Button variant="surface" onClick={handleResend} disabled={busy} pad="px-3 py-2.5" text="text-body" className="w-full">
             {sent ? "Email sent again" : "Resend email"}
           </Button>
           <button
             onClick={() => signOut()}
-            className="w-full text-center text-sm text-muted hover:text-fg"
+            className="w-full text-center text-body text-muted hover:text-fg"
           >
             Sign out
           </button>
         </div>
 
         {error && (
-          <p className="mt-4 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
+          <p className="mt-4 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-body text-danger">
             {error}
           </p>
         )}

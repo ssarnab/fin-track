@@ -5,7 +5,7 @@ export default function ReportPage() {
   return (
     <div>
       <div className="no-print">
-        <PageTitle title="Report" subtitle="Filter your transactions and generate a printable report." />
+        <PageTitle title="Report" subtitle="Filter your transactions, then print or export them." />
       </div>
       <Report />
     </div>

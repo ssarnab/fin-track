@@ -19,10 +19,10 @@ const NAV = [
 function Brand() {
   return (
     <Link href="/" className="flex items-center gap-2.5 px-1">
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-fg font-bold shadow-(--shadow)">
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-primary font-bold text-primary-fg shadow-(--shadow)">
         ৳
       </span>
-      <span className="text-[15px] font-semibold tracking-tight text-fg">FinTrack</span>
+      <span className="text-body font-semibold tracking-tight text-fg">FinTrack</span>
     </Link>
   );
 }
@@ -38,7 +38,7 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
             key={item.href}
             href={item.href}
             onClick={onNavigate}
-            className={`group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors ${
+            className={`group flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-body font-medium transition-colors ${
               active
                 ? "bg-primary/15 text-primary"
                 : "text-muted hover:bg-surface-2 hover:text-fg"
@@ -64,17 +64,17 @@ function UserMenu() {
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-surface-2"
+        className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-surface-2"
       >
         {identity?.photo ? (
           <Image src={identity.photo} alt={identity.name} width={28} height={28} className="rounded-full" />
         ) : (
-          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-surface-2 text-xs font-medium text-fg">
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-surface-2 text-meta font-medium text-fg">
             {identity?.name?.[0] ?? "?"}
           </span>
         )}
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium text-fg">{identity?.name}</span>
+          <span className="block truncate text-body font-medium text-fg">{identity?.name}</span>
         </span>
       </button>
 
@@ -83,15 +83,15 @@ function UserMenu() {
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute bottom-full left-0 z-20 mb-2 w-full min-w-56 rounded-xl border border-border bg-surface p-2 shadow-(--shadow-lg)">
             <div className="border-b border-border px-3 py-2">
-              <p className="truncate text-sm font-medium text-fg">{identity?.name}</p>
-              <p className="truncate text-xs text-muted">{identity?.email}</p>
+              <p className="truncate text-body font-medium text-fg">{identity?.name}</p>
+              <p className="truncate text-meta text-muted">{identity?.email}</p>
             </div>
             <button
               onClick={() => {
                 setOpen(false);
                 signOut();
               }}
-              className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-danger transition-colors hover:bg-danger/10"
+              className="mt-1 w-full rounded-lg px-3 py-2 text-left text-body text-danger transition-colors hover:bg-danger/10"
             >
               Sign out
             </button>
@@ -104,13 +104,13 @@ function UserMenu() {
 
 function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   return (
-    <div className="flex h-full flex-col gap-6 p-4">
+    <div className="flex h-full flex-col gap-4 p-3">
       <div className="flex items-center justify-between">
         <Brand />
         <ThemeToggle />
       </div>
       <NavLinks pathname={pathname} onNavigate={onNavigate} />
-      <div className="mt-auto border-t border-border pt-3">
+      <div className="mt-auto border-t border-border pt-2">
         <UserMenu />
       </div>
     </div>
@@ -148,7 +148,7 @@ export default function Sidebar() {
       )}
 
       {/* Desktop sidebar */}
-      <aside className="no-print sticky top-0 hidden h-dvh w-64 shrink-0 border-r border-border bg-bg-elev md:block">
+      <aside className="no-print sticky top-0 hidden h-dvh w-56 shrink-0 border-r border-border bg-bg-elev md:block">
         <SidebarBody pathname={pathname} />
       </aside>
     </>

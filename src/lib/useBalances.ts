@@ -25,5 +25,5 @@ export function useBalances() {
   // subscribing to them here too just doubles the channel for every edit.
   useRealtime(["transactions"], load);
 
-  return { balances, loading };
+  return { balances, loading, reload: load };
 }

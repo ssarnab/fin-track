@@ -36,6 +36,18 @@ export async function updateRoutineItem(
   if (error) throw error;
 }
 
+/** Persists a drag-and-drop reorder: every block's new position, plus the
+ * start/end times the re-flow moved it to. Sent as one round of updates —
+ * the whole run between the moved block and its destination shifts, so
+ * patching them one at a time from the UI would flicker. */
+export async function saveRoutineItemOrder(items: RoutineItem[]) {
+  await Promise.all(
+    items.map((it, i) =>
+      updateRoutineItem(it.id, { sort_order: i, start_time: it.start_time, end_time: it.end_time }),
+    ),
+  );
+}
+
 export async function deleteRoutineItem(id: number) {
   const { error } = await supabase.from("routine_item").delete().eq("id", id);
   if (error) throw error;
